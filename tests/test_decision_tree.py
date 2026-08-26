@@ -106,3 +106,27 @@ def test_invalid_input_raises_or_handles_gracefully():
     # Predicting on a differently-shaped single sample should still work
     prediction = tree.predict(np.array([[1.5]]))
     assert prediction[0] in [0, 1]
+
+
+
+def test_max_features_still_produces_working_tree():
+    X = np.array([
+        [1.0, 5.0],
+        [2.0, 5.0],
+        [8.0, 1.0],
+        [9.0, 1.0],
+    ])
+    y = np.array([0, 0, 1, 1])
+    tree = DecisionTreeClassifier(max_features=1, random_state=42)
+    tree.fit(X, y)
+    predictions = tree.predict(X)
+    assert np.array_equal(predictions, y)
+
+
+def test_default_max_features_none_uses_all_features():
+    X = np.array([[1.0], [2.0], [3.0], [4.0]])
+    y = np.array([0, 0, 1, 1])
+    tree = DecisionTreeClassifier()  # max_features defaults to None
+    tree.fit(X, y)
+    predictions = tree.predict(X)
+    assert np.array_equal(predictions, y)

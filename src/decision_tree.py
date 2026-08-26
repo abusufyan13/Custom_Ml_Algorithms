@@ -1,5 +1,6 @@
 import numpy as np
 from src.metrics import best_split
+from src.utils import random_feature_subset
 
 
 class Node:
@@ -37,10 +38,15 @@ class DecisionTreeClassifier:
         Minimum number of samples required at a node to attempt a split.
     """
 
-    def __init__(self, max_depth: int = 10, min_samples_split: int = 2):
+
+    def __init__(self, max_depth: int = 10, min_samples_split: int = 2,
+                 max_features: int = None, random_state: int = None):
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
+        self.max_features = max_features
+        self.random_state = random_state
         self.root = None
+        self._rng = np.random.default_rng(random_state)
 
     def fit(self, X: np.ndarray, y: np.ndarray):
         """Build the decision tree from training data."""
@@ -51,17 +57,23 @@ class DecisionTreeClassifier:
 
     def _build_tree(self, X: np.ndarray, y: np.ndarray, depth: int) -> Node:
         """Recursively build the tree, returning the root Node of this subtree."""
-        n_samples = X.shape[0]
+        n_samples, n_features = X.shape
         n_unique_labels = len(np.unique(y))
 
-        # Stopping conditions -> create a leaf
         if (depth >= self.max_depth
                 or n_unique_labels == 1
                 or n_samples < self.min_samples_split):
             leaf_value = self._majority_class(y)
             return Node(value=leaf_value)
 
-        split = best_split(X, y)
+        if self.max_features is not None:
+            feature_indices = random_feature_subset(
+                n_features, self.max_features, random_state=self._rng.integers(0, 1_000_000)
+            )
+        else:
+            feature_indices = None
+
+        split = best_split(X, y, feature_indices=feature_indices)
 
         if split is None:
             leaf_value = self._majority_class(y)
