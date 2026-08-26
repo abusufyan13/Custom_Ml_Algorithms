@@ -135,3 +135,32 @@ def test_best_split_rejects_empty_split_in_favor_of_real_one():
     result = best_split(X, y)
     assert result is not None
     assert result["gain"] > 0.0
+
+
+
+
+def test_best_split_respects_feature_indices_restriction():
+    # Feature 1 is the only one that separates classes; restrict search to feature 0 only
+    X = np.array([
+        [5.0, 1.0],
+        [5.0, 1.0],
+        [5.0, 4.0],
+        [5.0, 4.0],
+    ])
+    y = np.array([0, 0, 1, 1])
+    # Feature 0 is identical everywhere -> no valid split if restricted to it
+    result = best_split(X, y, feature_indices=[0])
+    assert result is None
+
+
+def test_best_split_feature_indices_none_searches_all():
+    X = np.array([
+        [5.0, 1.0],
+        [5.0, 1.0],
+        [5.0, 4.0],
+        [5.0, 4.0],
+    ])
+    y = np.array([0, 0, 1, 1])
+    result = best_split(X, y)  # feature_indices=None -> searches all
+    assert result is not None
+    assert result["feature_index"] == 1

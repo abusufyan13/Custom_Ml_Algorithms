@@ -69,13 +69,10 @@ def information_gain(parent: np.ndarray, left_child: np.ndarray, right_child: np
 
 
 
-
-
-
-def best_split(X: np.ndarray, y: np.ndarray):
+def best_split(X: np.ndarray, y: np.ndarray, feature_indices=None):
     """
-    Search over all features and thresholds to find the split with the
-    highest Information Gain.
+    Search over candidate features and thresholds to find the split with
+    the highest Information Gain.
 
     Parameters
     ----------
@@ -83,32 +80,36 @@ def best_split(X: np.ndarray, y: np.ndarray):
         2D array of shape (n_samples, n_features).
     y : np.ndarray
         1D array of class labels, shape (n_samples,).
+    feature_indices : array-like of int, optional
+        Restrict the search to these feature column indices only
+        (used by Random Forest for random feature selection).
+        If None, all features are considered.
 
     Returns
     -------
     dict or None
         Dictionary with keys 'feature_index', 'threshold', 'gain' for the
-        best split found. Returns None if no valid split exists (e.g. all
-        samples identical across every feature, or fewer than 2 samples).
+        best split found. Returns None if no valid split exists.
     """
     n_samples, n_features = X.shape
 
     if n_samples < 2:
         return None
 
+    if feature_indices is None:
+        feature_indices = range(n_features)
+
     best_gain = 0.0
     best_feature_index = None
     best_threshold = None
 
-    for feature_index in range(n_features):
+    for feature_index in feature_indices:
         feature_values = X[:, feature_index]
         unique_values = np.unique(feature_values)
 
         if unique_values.size < 2:
-            # All samples identical on this feature -> no valid threshold
             continue
 
-        # Candidate thresholds: midpoints between consecutive unique values
         thresholds = (unique_values[:-1] + unique_values[1:]) / 2.0
 
         for threshold in thresholds:
